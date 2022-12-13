@@ -4,160 +4,136 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hours</title>
+    <title>HERO Hours</title>
     <link rel="stylesheet" href="picnic.min.css" />
     <link rel="stylesheet" href="hours.css" />
 </head>
 
 <body>
-    <nav class="">
-        <a href="#" class="brand">
-            <span>Hero Hours</span>
-        </a>
-    </nav>
-    <div id="app" class="plainflex two main-content tall">
-        <div>
-            <article class="card h100">
-                <main class="member-list">
-                    <div v-for="row in usersData" v-bind:class="{ checkedIn: row['Checked In'] == true }">
-                        <div class="member">
-                            <div class="member-name">{{row["First Name"]}} {{row["Last Name"]}}</div>
-                            <div class="member-id"><label>Id:</label> {{row["User ID"]}}</div>
-                            <div class="member-hours"><label>Hours:</label> {{convertTimestampToDuration(row["Total Seconds"])}}</div>
-                        </div>
-                    </div>
-                </main>
-            </article>
-        </div>
-        &nbsp;
-        <div class="third tall">
-            <article class="card">
-                <header>
-                    <h1>
-                        {{dateTime.date}}
-                        <br />
-                        {{dateTime.time}}
-                        <br />
-                        {{usersCheckedIn}} Users Checked In
-                    </h1>
-                </header>
-            </article>
-            <article class="card">
-                <main>
-                    <table class="primary center">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Operation</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="item in localLogEntries">
-                                <td>{{item.userID}}</td>
-                                <td>
-                                    <span
-                                        v-bind:class="{success: item.operation == 'checkIn', primary: item.operation == 'checkOut'}"
-                                        class="label">
-                                        {{item.operation}}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span
-                                        v-bind:class="{success: item.status == 'success', warning: item.status == 'error'}"
-                                        class="label">
-                                        {{item.status}}&nbsp;{{item.message}}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr class="empty" v-if="localLog.length <= 0">
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr class="empty" v-if="localLog.length <= 1">
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr class="empty" v-if="localLog.length <= 2">
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr class="empty" v-if="localLog.length <= 3">
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr class="empty" v-if="localLog.length <= 4">
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr class="empty" v-if="localLog.length <= 5">
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr class="empty" v-if="localLog.length <= 6">
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr class="empty" v-if="localLog.length <= 7">
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr class="empty" v-if="localLog.length <= 8">
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr class="empty" v-if="localLog.length <= 9">
-                                <td>&nbsp;</td>
-                                <td></td>
-                                <td></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </main>
+    <article id="app">
+        <main class="member-list">
+            <div v-for="row in usersData" class="member" v-bind:class="{ checkedIn: row['Checked In'] == true }">
+                <div class="member-name">{{row["First Name"]}} {{row["Last Name"]}}</div>
+                <div>
+                    <div class="member-id"><label>ID:</label>{{row["User ID"]}}</div>
+                    <div class="member-hours"><label>Hours:</label>{{convertTimestampToDuration(row["Total Seconds"])}}</div>
+                </div>
+            </div>
+        </main>
+        <aside>
+            <h1 v-if="!onLine"><div class="offline">System Offline</div></h1>
 
-                <footer>
-                    <h3>
-                        Enter User ID
-                        <span v-if="onLine"
-                            v-bind:class="{success: mode.operation == 'checkIn', primary: mode.operation == 'checkOut'}"
-                            class="label">
-                            {{this.mode.text}}
-                        </span>
-                        <span class="label error" v-else>Offline</span>
-                    </h3>
+            <div class="controls">
+                <h1>
+                    HERO Hours
+                    <div class="time">
+                        {{dateTime.toLocaleDateString()}}
+                        {{dateTime.toLocaleTimeString()}}
+                    </div>
+                </h1>
+                <h2 class="count">
+                    {{usersCheckedIn}} Checked In
+                </h2>
+                <div v-if="onLine">
                     <form @submit.prevent="submitForm">
                         <div class="input-field">
                             <input autocomplete="off" ref="userID" type="text" id="userID" v-model="form.userID"
                                 placeholder="User ID" />
-                            <button>Submit</button>
+                            <button v-bind:class="{success: mode.operation == 'checkIn', primary: mode.operation == 'checkOut'}"
+                            >{{this.mode.text}}</button>
                         </div>
-                        <p>
-                            Enter
-                            <strong>+00</strong>
-                            to enter
-                            <strong>Check In</strong>
-                            mode, enter
-                            <strong>+01</strong>
-                            to enter
-                            <strong>Check Out</strong>
-                            mode, enter
-                            <strong>*</strong>
-                            to reload this page
-                        </p>
                     </form>
-                </footer>
-            </article>
-        </div>
-    </div>
+                    <p>
+                        Enter <strong>+00</strong> to enter <strong>Check In</strong> mode
+                        <br />
+                        Enter <strong>+01</strong> to enter <strong>Check Out</strong> mode
+                        <br />
+                        Enter <strong>*</strong> to reload this page
+                    </p>
+                </div>
+            </div>
+
+            <h3>Activity Log</h3>
+            <table class="primary">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Operation</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="item in localLogEntries">
+                        <td>{{item.userID}}</td>
+                        <td>
+                            <span
+                                v-bind:class="{success: item.operation == 'checkIn', primary: item.operation == 'checkOut'}"
+                                class="label">
+                                {{item.operation}}
+                            </span>
+                        </td>
+                        <td>
+                            <span
+                                v-bind:class="{success: item.status == 'success', warning: item.status == 'error'}"
+                                class="label">
+                                {{item.status}}&nbsp;{{item.message}}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="empty" v-if="localLog.length <= 0">
+                        <td>&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="empty" v-if="localLog.length <= 1">
+                        <td>&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="empty" v-if="localLog.length <= 2">
+                        <td>&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="empty" v-if="localLog.length <= 3">
+                        <td>&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="empty" v-if="localLog.length <= 4">
+                        <td>&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="empty" v-if="localLog.length <= 5">
+                        <td>&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="empty" v-if="localLog.length <= 6">
+                        <td>&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="empty" v-if="localLog.length <= 7">
+                        <td>&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="empty" v-if="localLog.length <= 8">
+                        <td>&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr class="empty" v-if="localLog.length <= 9">
+                        <td>&nbsp;</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </aside>
+    </article>
 </body>
 <script src="vue.global.js"></script>
 <script src="hours.js"></script>

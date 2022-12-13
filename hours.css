@@ -37,73 +37,96 @@
 		/* Chrome 26+, Opera 23+, Firefox 39+ */
 			url("../fonts/open-sans-v27-latin-700italic.woff") format("woff"); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
+
 body {
-	color: #454545;
+	color: #333;
 	font-family: "Open Sans";
-}
-.main-content {
-	width: 90vw;
-	margin: auto;
-	padding-top: 70px;
-	padding-left: 3.125%;
-	padding-right: 3.125%;
-	padding-bottom: 3.125%;
-}
-.plainflex {
-	display: flex;
-	flex-wrap: wrap;
-	transition: all 0.3s ease;
-}
-.plainflex > div {
-	flex: 1 1 auto;
-	padding-bottom: 0.6em;
-}
-.tall {
-	height: 90vh;
-}
-.h100 {
-	height: 100%;
-}
-/* .empty td {
-    padding: 1em 0;
-} */
-table {
-	font-size: 12px;
-	width: 100% !important;
-}
-.input-field {
-	display: flex;
-}
-.input-field input {
-	flex: 1 1 auto;
-	margin-right: 1em;
+	padding: 0;
+	margin: 0;
+	overflow: hidden;
 }
 
 article {
 	display: flex;
-	flex-direction: column;
+	width: 100%;
+	height: 100%;
 }
-article main {
+main {
+	display: flex;
 	flex: 1 1 auto;
+	height: 100%;
+	overflow: auto;
+}
+aside {
+	display: flex;
+	flex-direction: column;
+	width: 440px;
+	height: 100%;
+	padding: 20px;
+	box-shadow: -5px 0 10px rgb(0 0 0 / 10%);
+    border-left: 1px solid #ccc;
+}
+table {
 	width: 100%;
 }
-table .label {
-	font-size: 12px !important;
+.count {
+	font-size: 40px;
+	font-weight: bold;
+	margin: 1em 0;
+}
+.controls {
+	flex: 1 1 auto;
+}
+.controls .input-field {
+	font-size: 30px;
+}
+.time {
+	font-family: monospace;
+}
+h1 {
+	padding: 0;
+	line-height: 1;
 }
 
-.member-list > div {
-	display: inline-block;
-	width: 25%;
+#app {
+	flex-direction: row;
+	overflow: hidden;
+}
+.offline {
+	background: red;
+	color: #fff;
+	text-align: center;
+	border-radius: 5px;
+	margin-bottom: 1em;
+}
+
+.member-list {
+	display: grid; 
+	grid-auto-rows: 1fr; 
+	grid-template-columns: 1fr 1fr 1fr 1fr 1fr; 
+	gap: 5px 5px;
+	padding: 5px;
+	background: #eee;
 }
 .member {
-	margin: 0.25em;
-	padding: 0.5em;
+	background: #fff;
+	display: flex;
+	flex-direction: column;
+	padding: 0.5em 1em;
 	font-size: 12px;
 	box-shadow: inset 0 0 1px #fff;
 	border-radius: 0.5em;
+	justify-content: space-between;
+	line-height: 1.1em;
+}
+.member label {
+	margin-right: .5em;
 }
 .member-name {
+	font-size: 15px;
 	font-weight: bold;
+	margin-bottom: .5em;
+	line-height: 1.1em;
 }
 .member-id {
 	font-size: 12px;
@@ -114,7 +137,12 @@ table .label {
 .member label {
 	opacity: 0.5;
 }
-.checkedIn .member {
+.member.checkedIn {
 	background: #0074d9;
 	color: #fff;
+}
+
+.input-field button {
+	display: block;
+	width: 100%;
 }
