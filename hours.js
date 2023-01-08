@@ -3,6 +3,7 @@ let endpoint;
 let successSound;
 let errorSound;
 const date = new Date();
+
 function transformTabularData(rawdata) {
 	// This is an example of array destructuring.
 	// - extract the first item in the array into local variable `headers`
@@ -37,10 +38,7 @@ const app = {
 			usersData: [],
 			usersCheckedIn: 0,
 			onLine: navigator.onLine,
-			dateTime: {
-				date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`,
-				time: `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`,
-			},
+			dateTime: new Date(),
 			timer: undefined,
 		};
 	},
@@ -89,11 +87,7 @@ const app = {
 			this.$refs.userID.disabled = true;
 		},
 		setDateTime() {
-			const date = new Date();
-			this.dateTime = {
-				date: `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`,
-				time: `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`,
-			};
+			this.dateTime = new Date();
 		},
 		//https://javascript.plainenglish.io/create-a-digital-clock-app-with-vue-3-and-javascript-c5c0251d5ce3
 		updateOnlineStatus(e) {
