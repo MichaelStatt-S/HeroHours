@@ -22,6 +22,30 @@ function transformTabularData(rawdata) {
   );
 }
 
+async function userAction(userID, operation) {
+  const url = `${endpoint}?${new URLSearchParams({
+    userID,
+    operation,
+  })}`;
+  const data = await fetch(url, {
+    method: 'GET',
+    redirect: 'follow',
+  }).then((response) => response.json());
+
+  if (data.status === 'error') {
+    errorSound.play();
+  } else if (data.status === 'success') {
+    successSound.play();
+  }
+
+  return {
+    userID,
+    operation,
+    status: data.status,
+    message: data.message,
+  };
+}
+
 const app = {
   name: 'Hours',
   data() {
@@ -55,6 +79,7 @@ const app = {
       })
       .then(this.getUsersData)
       .catch((err) => console.error(err));
+
     window.addEventListener('online', this.updateOnlineStatus);
     window.addEventListener('offline', this.updateOnlineStatus);
     window.addEventListener('keydown', (e) => {
@@ -100,55 +125,43 @@ const app = {
     },
     async submitForm() {
       this.disableUserField();
-      let response;
-      let responseJSON;
-      //if user types +00 set mode to checkIn
+
       if (this.form.userID === '+00') {
+        // if user types +00 set mode to checkIn
         this.mode.operation = 'checkIn';
         this.mode.text = 'Check In';
         this.form.userID = '';
         this.getUsersData();
         this.enableUserField();
-      }
-      //if user types +01 set mode to checkOut
-      else if (this.form.userID === '+01') {
+      } else if (this.form.userID === '+01') {
+        // if user types +01 set mode to checkOut
         this.mode.operation = 'checkOut';
         this.mode.text = 'Check Out';
         this.form.userID = '';
         this.getUsersData();
         this.enableUserField();
-      }
-      //if user submits nothing do nothing
-      else if (this.form.userID === '') {
+      } else if (this.form.userID === '+404') {
+        // if user types +404 find all checked in users and check them all out
+        this.mode.operation = 'checkOut';
+        const loggedInUserIds = this.usersData
+          .filter((user) => user['Checked In'] == true)
+          .map((user) => user['User ID']);
+
+        await Promise.allSettled(
+          loggedInUserIds.map((id) => userAction(id, 'checkOut').then((result) => this.localLog.push(result)))
+        );
+
+        this.enableUserField();
+        this.form.userID = '';
+        this.getUsersData();
+      } else if (this.form.userID === '') {
+        //if user submits nothing do nothing
         this.enableUserField();
       } else {
-        await fetch(
-          endpoint +
-            '?' +
-            new URLSearchParams({
-              userID: this.form.userID,
-              operation: this.mode.operation,
-            }),
-          {
-            method: 'GET',
-            redirect: 'follow',
-          }
-        )
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.status === 'error') {
-              errorSound.play();
-            } else if (data.status === 'success') {
-              successSound.play();
-            }
-            this.localLog.push({
-              userID: this.form.userID,
-              operation: this.mode.operation,
-              status: data.status,
-              message: data.message,
-            });
-            this.enableUserField();
-          });
+        const result = await userAction(this.form.userID, this.mode.operation);
+
+        this.localLog.push(result);
+        this.enableUserField();
         this.form.userID = '';
         this.getUsersData();
       }
