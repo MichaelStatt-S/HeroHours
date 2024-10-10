@@ -1,0 +1,66 @@
+{% load static %}
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HERO Hours</title>
+    <link rel="stylesheet" href="{% static 'css/picnic.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/hours.css' %}" />
+  </head>
+
+  <body>
+    <article id="app">
+      <main class="member-list">
+{% block members %}
+{% endblock %}
+      </main>
+      <aside>
+        <div class="offline" id ="status" hidden="hidden">System Offline</div>
+
+        <div class="controls">
+          <h1>
+            HERO Hours
+            <div class="time"></div>
+          </h1>
+          <h2 class="count" id="num-in">{{ checked_in }} Checked In</h2>
+          <div>
+            <form method="POST" action="{% url 'in-out' %}" id="subID">
+                {% csrf_token %}
+              <div class="input-field">
+                <input
+                  autocomplete="off"
+                  type="text"
+                  id="userID"
+                  placeholder="User ID"
+                  name="user_input"
+                />
+                <button class="success">
+                </button>
+              </div>
+            </form>
+            <p>
+           <!--   Enter <strong>+00</strong> to enter <strong>Check In</strong> mode
+              <br />
+              Enter <strong>+01</strong> to enter <strong>Check Out</strong> mode
+              <br />-->
+              Enter <strong>*</strong> to reload this page
+            </p>
+          </div>
+        </div>
+
+        <h3>Activity Log</h3>
+{% block logs %}
+          {% endblock %}
+
+      </aside>
+    </article>
+  </body>
+  <script>
+    const successAudioUrl = "{% static 'audios/success.mp3' %}";
+    const outAudioUrl = "{% static 'audios/check-out.mp3' %}";
+    const notFoundAudioUrl = "{% static 'audios/not_found.mp3' %}";
+    const queryUrl = {% url 'in-out' %}
+</script>
+  <script src = "{% static 'js/hours.js' %}"></script>
+</html>

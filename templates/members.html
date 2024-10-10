@@ -1,0 +1,53 @@
+{% extends 'index.html' %}
+{%  block members %}
+    {% for row in usersData %}
+    <div class="member {% if row.Checked_In %}checkedIn{% endif %}" id="{{ row.User_ID }}">
+        <!-- Display the user's name -->
+        <div class="member-name">
+            {{ row.First_Name }} {{ row.Last_Name }}
+        </div>
+        <div>
+            <!-- Display the user's ID -->
+            <div class="member-id">
+                <label>ID:</label> {{ row.User_ID }}
+            </div>
+            <!-- Display the user's total hours -->
+            <div class="member-hours">
+                <label>Hours:</label> {{ row.get_total_hours }}
+            </div>
+        </div>
+    </div>
+{% endfor %}
+{% endblock %}
+{% block logs %}
+            <table class="primary" id="log_table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Operation</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody id="logBody">
+        {% for item in local_log_entries %}
+            <tr class = "{% if item.status != "User Not Found" %}{{ item.status }}{% else %}warning {% endif %} bg">
+                <td class="">{{ item.userID }}</td>
+                <td class="">
+                    <span class="{% if item.operation == 'Check In' %}success{% elif item.operation == 'Check Out' %}check-out {% else %}warning{% endif %} label">
+                        {{ item.operation }}
+                    </span>
+                </td>
+                <td class="">
+                    <span class="{% if item.status == 'Success' %}success{% else %}warning{% endif %} label">
+                        {{ item.status }}&nbsp;{{ item.message }}
+                    </span>
+                </td>
+            </tr>
+        {% empty %}
+            <tr class="empty">
+                <td colspan="3">No activity logs available.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
