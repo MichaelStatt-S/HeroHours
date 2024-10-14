@@ -34,8 +34,8 @@ def handle_entry(request):
     start_time = time.time()
     user_id = request.POST.get('user_input')
     right_now = timezone.now()
-    profiler = cProfile.Profile()
-    profiler.enable()
+    #profiler = cProfile.Profile()
+    #profiler.enable()
 
     # Handle special commands first
     if handle_special_commands(user_id):
@@ -70,10 +70,10 @@ def handle_entry(request):
     print(f"input(before) execution time: {elapsed_time:.4f} seconds")
     operation_result = check_in_or_out(user, right_now, log, count)
     print(timezone.now())
-    profiler.disable()
-    stats = pstats.Stats(profiler)
-    stats.strip_dirs()
-    stats.sort_stats('cumulative').print_stats(10)
+    #profiler.disable()
+    #stats = pstats.Stats(profiler)
+    #stats.strip_dirs()
+    #stats.sort_stats('cumulative').print_stats(10)
     # Return JSON response with status and user info
     return JsonResponse(operation_result)
 
@@ -83,7 +83,7 @@ def handle_special_commands(user_id):
     start_time = time.time()
     if user_id == "Send":
         elapsed_time = time.time() - start_time
-        print(f"input() execution time: {elapsed_time:.4f} seconds")
+        print(f"input(send) execution time: {elapsed_time:.4f} seconds")
         return redirect('send_data_to_google_sheet')
 
     if user_id in ['+00', '+01', '*']:
@@ -91,6 +91,10 @@ def handle_special_commands(user_id):
         print(f"input(special) execution time: {elapsed_time:.4f} seconds")
         return redirect('index')
 
+    if user_id == "admin":
+        elapsed_time = time.time() - start_time
+        print(f"input(admin) execution time: {elapsed_time:.4f} seconds")
+        return redirect('/admin/')
 
 def handle_bulk_updates(user_id):
         start_time = time.time()
@@ -172,6 +176,7 @@ def send_data_to_google_sheet(request):
     print(serialized_data)
     together = [serialized_data, serialized_data2]
     all_data = json.dumps(obj=together)
+    count = users.filter(Checked_In=True).count()
 
     # Send POST request to the Apps Script API
     try:
@@ -181,10 +186,10 @@ def send_data_to_google_sheet(request):
         if response.status_code == 200:
             result = response.json()
             print(result)
-            return JsonResponse({'status': 'Sent', 'result': result})
+            return JsonResponse({'status': 'Sent', 'result': result,'count': count})
         else:
-            return JsonResponse({'status': 'Sent', 'message': 'Failed to send data'})
+            return JsonResponse({'status': 'Sent', 'message': 'Failed to send data','count': count})
     except Exception as e:
         print("failed")
         print(e)
-        return JsonResponse({'status': 'error', 'message': str(e)})
+        return JsonResponse({'status': 'error', 'message': str(e),'count': count})

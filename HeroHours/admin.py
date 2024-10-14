@@ -1,12 +1,21 @@
 import csv
-
-from django.contrib import admin
-from django.http import HttpResponse
-from django.contrib.admin import SimpleListFilter
-from django.utils.translation import gettext_lazy as _
-from . import models
+import json
 from datetime import datetime
+from types import SimpleNamespace
+
+import django.contrib.auth.models as authModels
+from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
+from django.contrib.auth.decorators import user_passes_test
+from django.forms import model_to_dict
+from django.http import HttpResponse
+from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+from forms import CustomActionForm
+from . import models
+from .models import Users
 
 
 # Register your models here.
@@ -53,6 +62,19 @@ def check_in(modeladmin, request, queryset):
     models.Users.objects.bulk_update(updated_users, ["Checked_In", "Total_Hours", "Total_Seconds", "Last_Out"])
     models.ActivityLog.objects.bulk_create(updated_log)
 
+
+def create_staff_user_action(modeladmin, request, queryset):
+    print(request)
+    selected_user = queryset.first()
+    userdata = model_to_dict(selected_user)
+
+    form = CustomActionForm(initial={'hidden_data':json.dumps({'First_Name':userdata['First_Name'],'Last_Name':userdata['Last_Name']})})
+    return render(request, 'admin/custom_action_form.html', {'form': form})
+
+
+create_staff_user_action.short_description = "Create a Staff User"
+
+
 class TotalHoursFilter(SimpleListFilter):
     title = _('total hours less than')  # Display title in the admin filter sidebar
     parameter_name = 'total_hours'  # URL parameter
@@ -92,21 +114,54 @@ def export_as_csv(self, request, queryset):
     return response
 
 
-class UserAdmin(admin.ModelAdmin):
+class UsersAdmin(admin.ModelAdmin):
     list_display = ("User_ID", "First_Name", "Last_Name", "Checked_In", "display_total_hours")
-    readonly_fields = ["Checked_In","Last_In","Last_Out"]
+    readonly_fields = ["Checked_In", "Last_In", "Last_Out"]
     data_hierarchy = "Last_Name"
-    actions = [check_out, check_in,export_as_csv]
+    actions = [check_out, check_in, export_as_csv, create_staff_user_action]
     search_fields = ['User_ID', 'Last_Name', 'First_Name']
     list_filter = ['Checked_In', TotalHoursFilter]
+
     def display_total_hours(self, obj):
-            return obj.get_total_hours()
+        return obj.get_total_hours()
+
     display_total_hours.short_description = "Total Hours"
     display_total_hours.admin_order_field = "Total_Seconds"
 
+def is_superuser(user):
+    return user.is_superuser
+@user_passes_test(is_superuser)
+def add_user(request):
+    form_data_dict=request.POST.dict()
+    form_data = SimpleNamespace(**form_data_dict)
+    print(form_data)
+    username = form_data.username
+    password = form_data.password
+    hidden_data = json.loads(form_data.hidden_data)
+    fname = hidden_data['First_Name']
+    lname = hidden_data['Last_Name']
+    group_name = form_data.group_name
 
+    if authModels.User.objects.filter(username=username).exists():
+        print('User already exists')
+    else:
+        user = authModels.User.objects.create_user(username=username,
+                                                   first_name=fname,
+                                                   last_name=lname)
+        user.set_password(raw_password=password)
+        user.is_staff = True
+        user.save()
 
-admin.site.register(models.Users, UserAdmin)
+        group = authModels.Group.objects.get(name=group_name)
+        print(group)
+        user.groups.add(group)
+
+        print('nicely done')
+
+    return redirect('/admin/')
+# Custom action to create a staff user
+
+admin.site.register(model_or_iterable=Users, admin_class=UsersAdmin)
 admin.site.site_header = 'HERO Hours Admin'
 admin.site.site_title = 'HERO Hours Admin'
 admin.site.index_title = 'User Administration'
