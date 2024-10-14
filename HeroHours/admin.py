@@ -13,7 +13,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from forms import CustomActionForm
+from HeroHours.forms import CustomActionForm
 from . import models
 from .models import Users, ActivityLog
 
@@ -131,13 +131,21 @@ class UsersAdmin(admin.ModelAdmin):
 
 
 class ActivityAdminView(admin.ModelAdmin):
-    list_display = ('userID', 'get_op', 'get_status', 'timestamp', 'get_date_only')
+    list_display = ('userID', 'get_name', 'get_op', 'get_status', 'timestamp', 'get_date_only')
     search_fields = ['timestamp']
 
     def get_date_only(self, obj):
-        return obj.timestamp.date()
+        return timezone.localtime(obj.timestamp).date()
 
     get_date_only.short_description = 'Date'
+
+    def get_name(self, obj):
+        names = Users.objects.only('First_Name', 'Last_Name').get(User_ID=obj.userID)
+        #TODO fix this
+        #this is extremely slow - just a quick addition that will need to be optimized
+        #it queries for each log, which is bad.
+        return f'{names.First_Name} {names.Last_Name}'
+    get_name.short_description = 'Name'
 
     def get_status(self, obj):
         return obj.status
