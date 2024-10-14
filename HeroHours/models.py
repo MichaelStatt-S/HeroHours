@@ -11,6 +11,7 @@ class Users(models.Model):
     Total_Seconds = models.FloatField(default=0)
     Last_In = models.DateTimeField(null=True)
     Last_Out = models.DateTimeField(null=True)
+    Is_Active = models.BooleanField(default=True)
 
     def get_total_hours(self):
         #print(f"Total Seconds: {self.Total_Seconds}")
@@ -39,6 +40,7 @@ class ActivityLog(models.Model):
         ('success', 'Success'),
         ('error', 'Error'),
         ('user not found', 'User Not Found'),
+        ('inactive user', 'Inactive User'),
     ]
 
     userID = models.CharField(max_length=255)  # Assuming userID is a string; adjust type as necessary

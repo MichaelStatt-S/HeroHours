@@ -20,7 +20,7 @@ load_dotenv(find_dotenv())
 @permission_required("HeroHours.change_users")
 def index(request):
     # Query all users from the database
-    usersData = models.Users.objects.all()
+    usersData = models.Users.objects.filter(Is_Active=True)
     users_checked_in = models.Users.objects.filter(Checked_In=True).count()
     local_log_entries = models.ActivityLog.objects.all()[:9]  #limits to loading only 9 entries
     #print(local_log_entries)
@@ -156,13 +156,17 @@ def check_in_or_out(user, right_now, log, count):
     user.Checked_In = not user.Checked_In
     log.status = 'Success'
     operation = "Check Out" if not state else "Success"
+    if not user.Is_Active:
+        log.operation = "None"
+        state = None
+        log.status = "Inactive User"
+    else:
+        user.save()
 
     # Save log and user updates
     log.save()
-    user.save()
     elapsed_time = time.time() - start_time
     print(f"input(in or out) execution time: {elapsed_time:.4f} seconds")
-
     return {
         'status': operation,
         'state': state,
