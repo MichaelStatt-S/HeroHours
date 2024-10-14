@@ -68,7 +68,8 @@ def create_staff_user_action(modeladmin, request, queryset):
     selected_user = queryset.first()
     userdata = model_to_dict(selected_user)
 
-    form = CustomActionForm(initial={'hidden_data':json.dumps({'First_Name':userdata['First_Name'],'Last_Name':userdata['Last_Name']})})
+    form = CustomActionForm(
+        initial={'hidden_data': json.dumps({'First_Name': userdata['First_Name'], 'Last_Name': userdata['Last_Name']})})
     return render(request, 'admin/custom_action_form.html', {'form': form})
 
 
@@ -125,14 +126,18 @@ class UsersAdmin(admin.ModelAdmin):
     def display_total_hours(self, obj):
         return obj.get_total_hours()
 
+
     display_total_hours.short_description = "Total Hours"
     display_total_hours.admin_order_field = "Total_Seconds"
 
+
 def is_superuser(user):
     return user.is_superuser
+
+
 @user_passes_test(is_superuser)
 def add_user(request):
-    form_data_dict=request.POST.dict()
+    form_data_dict = request.POST.dict()
     form_data = SimpleNamespace(**form_data_dict)
     print(form_data)
     username = form_data.username
@@ -159,6 +164,8 @@ def add_user(request):
         print('nicely done')
 
     return redirect('/admin/')
+
+
 # Custom action to create a staff user
 
 admin.site.register(model_or_iterable=Users, admin_class=UsersAdmin)
