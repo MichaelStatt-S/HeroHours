@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'HeroHours.apps.HeroHoursConfig',
     'debug_toolbar',
-    #'sslserver',
+    'sslserver',
 ]
 LOGIN_REDIRECT_URL = '/HeroHoursRemake/HeroHours/'
 LOGIN_URL = '/HeroHours/login/'

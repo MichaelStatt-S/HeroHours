@@ -7,12 +7,14 @@ from django.db.models import F, DurationField, ExpressionWrapper
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.core import serializers
+from dotenv import load_dotenv, find_dotenv
+
 from . import models
 from django.http import JsonResponse
 from django.forms.models import model_to_dict
-import cProfile
-import pstats
-from django.views.decorators.cache import cache_page
+
+load_dotenv(find_dotenv())
+
 
 # Create your views here.
 @permission_required("HeroHours.change_users")
@@ -63,7 +65,8 @@ def handle_entry(request):
                 {'status': 'User Not Found', 'user_id': user_id, 'operation': None, 'newlog': model_to_dict(log),
                  'count': count})
     except Exception as e:
-        return JsonResponse({'status': "Error", 'newlog': {'userID': user_id, 'operation': "None", 'status': 'Error','message': e.__str__()}, 'state': None,'count': count})
+        return JsonResponse({'status': "Error", 'newlog': {'userID': user_id, 'operation': "None", 'status': 'Error',
+                                                           'message': e.__str__()}, 'state': None, 'count': count})
 
     # Perform Check-In or Check-Out operations
     elapsed_time = time.time() - start_time
@@ -76,7 +79,6 @@ def handle_entry(request):
     #stats.sort_stats('cumulative').print_stats(10)
     # Return JSON response with status and user info
     return JsonResponse(operation_result)
-
 
 
 def handle_special_commands(user_id):
@@ -96,39 +98,41 @@ def handle_special_commands(user_id):
         print(f"input(admin) execution time: {elapsed_time:.4f} seconds")
         return redirect('/admin/')
 
+
 def handle_bulk_updates(user_id):
-        start_time = time.time()
-        updated_users = []
-        updated_log = []
-        right_now = timezone.now()
+    start_time = time.time()
+    updated_users = []
+    updated_log = []
+    right_now = timezone.now()
+
+    if user_id == '-404' and os.environ.get('DEBUG', 'False') == 'True':
+        getall = models.Users.objects.filter(Checked_In=False)
+    else:
+        getall = models.Users.objects.filter(Checked_In=True)
+
+    for user in getall:
+        log = models.ActivityLog(userID=user.User_ID, operation='Check In' if user_id == '-404' else 'Check Out',
+                                 status='Success')
 
         if user_id == '-404':
-            getall = models.Users.objects.filter(Checked_In=False)
+            user.Checked_In = True
+            user.Last_In = right_now
         else:
-            getall = models.Users.objects.filter(Checked_In=True)
+            user.Checked_In = False
+            user.Total_Hours = ExpressionWrapper(F('Total_Hours') + (right_now - user.Last_In),
+                                                 output_field=DurationField())
+            user.Total_Seconds = F('Total_Seconds') + round((right_now - user.Last_In).total_seconds())
+            user.Last_Out = right_now
 
-        for user in getall:
-            log = models.ActivityLog(userID=user.User_ID, operation='Check In' if user_id == '-404' else 'Check Out',
-                                     status='Success')
+        updated_log.append(log)
+        updated_users.append(user)
 
-            if user_id == '-404':
-                user.Checked_In = True
-                user.Last_In = right_now
-            else:
-                user.Checked_In = False
-                user.Total_Hours = ExpressionWrapper(F('Total_Hours') + (right_now - user.Last_In), output_field=DurationField())
-                user.Total_Seconds = F('Total_Seconds') + round((right_now - user.Last_In).total_seconds())
-                user.Last_Out = right_now
-
-            updated_log.append(log)
-            updated_users.append(user)
-
-        models.Users.objects.bulk_update(updated_users, ["Checked_In", "Total_Hours", "Total_Seconds", "Last_Out"])
-        models.ActivityLog.objects.bulk_create(updated_log)
-        elapsed_time = time.time() - start_time
-        print(f"input(bulk) execution time: {elapsed_time:.4f} seconds")
-        # Redirect to index after bulk updates
-        return redirect('index')
+    models.Users.objects.bulk_update(updated_users, ["Checked_In", "Total_Hours", "Total_Seconds", "Last_Out"])
+    models.ActivityLog.objects.bulk_create(updated_log)
+    elapsed_time = time.time() - start_time
+    print(f"input(bulk) execution time: {elapsed_time:.4f} seconds")
+    # Redirect to index after bulk updates
+    return redirect('index')
 
 
 def check_in_or_out(user, right_now, log, count):
@@ -137,7 +141,8 @@ def check_in_or_out(user, right_now, log, count):
         count -= 1
         state = False
         log.operation = 'Check Out'
-        user.Total_Hours = ExpressionWrapper(F('Total_Hours') + (right_now - user.Last_In), output_field=DurationField())
+        user.Total_Hours = ExpressionWrapper(F('Total_Hours') + (right_now - user.Last_In),
+                                             output_field=DurationField())
         user.Total_Seconds = F('Total_Seconds') + round((right_now - user.Last_In).total_seconds())
         user.Last_Out = right_now
     else:
@@ -163,11 +168,10 @@ def check_in_or_out(user, right_now, log, count):
         'count': count,
     }
 
+
 APP_SCRIPT_URL = os.environ['APP_SCRIPT_URL']
 
 
-#TODO submit the data via a view (as above) and instead of rendering index again, update the page live
-#change the members display class to member checkedIn and add to the log table locally
 @permission_required("HeroHours.change_users", raise_exception=True)
 def send_data_to_google_sheet(request):
     users = models.Users.objects.all()
@@ -186,10 +190,10 @@ def send_data_to_google_sheet(request):
         if response.status_code == 200:
             result = response.json()
             print(result)
-            return JsonResponse({'status': 'Sent', 'result': result,'count': count})
+            return JsonResponse({'status': 'Sent', 'result': result, 'count': count})
         else:
-            return JsonResponse({'status': 'Sent', 'message': 'Failed to send data','count': count})
+            return JsonResponse({'status': 'Sent', 'message': 'Failed to send data', 'count': count})
     except Exception as e:
         print("failed")
         print(e)
-        return JsonResponse({'status': 'error', 'message': str(e),'count': count})
+        return JsonResponse({'status': 'error', 'message': str(e), 'count': count})
