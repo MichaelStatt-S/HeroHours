@@ -32,11 +32,13 @@ class ActivityLog(models.Model):
     OPERATION_CHOICES = [
         ('checkIn', 'Check In'),
         ('checkOut', 'Check Out'),
+        ('none', "None"),
     ]
 
     STATUS_CHOICES = [
         ('success', 'Success'),
         ('error', 'Error'),
+        ('user not found', 'User Not Found'),
     ]
 
     userID = models.CharField(max_length=255)  # Assuming userID is a string; adjust type as necessary
@@ -49,4 +51,4 @@ class ActivityLog(models.Model):
         return f"{self.userID} - {self.operation} - {self.status} - {self.timestamp}"
 
     class Meta:
-        ordering = ['-timestamp']  # Order by most recent logs first
+        ordering = ['-id']  # Order by most recent logs first

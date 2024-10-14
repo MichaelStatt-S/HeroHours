@@ -15,7 +15,7 @@ from django.utils.translation import gettext_lazy as _
 
 from forms import CustomActionForm
 from . import models
-from .models import Users
+from .models import Users, ActivityLog
 
 
 # Register your models here.
@@ -126,9 +126,28 @@ class UsersAdmin(admin.ModelAdmin):
     def display_total_hours(self, obj):
         return obj.get_total_hours()
 
-
     display_total_hours.short_description = "Total Hours"
     display_total_hours.admin_order_field = "Total_Seconds"
+
+
+class ActivityAdminView(admin.ModelAdmin):
+    list_display = ('userID', 'get_op', 'get_status', 'timestamp', 'get_date_only')
+    search_fields = ['timestamp']
+
+    def get_date_only(self, obj):
+        return obj.timestamp.date()
+
+    get_date_only.short_description = 'Date'
+
+    def get_status(self, obj):
+        return obj.status
+
+    get_status.short_description = 'Status'
+
+    def get_op(self, obj):
+        return obj.operation
+
+    get_op.short_description = 'Operation'
 
 
 def is_superuser(user):
@@ -169,6 +188,7 @@ def add_user(request):
 # Custom action to create a staff user
 
 admin.site.register(model_or_iterable=Users, admin_class=UsersAdmin)
+admin.site.register(model_or_iterable=ActivityLog, admin_class=ActivityAdminView)
 admin.site.site_header = 'HERO Hours Admin'
 admin.site.site_title = 'HERO Hours Admin'
 admin.site.index_title = 'User Administration'

@@ -105,7 +105,9 @@ def handle_bulk_updates(user_id):
     updated_log = []
     right_now = timezone.now()
 
-    if user_id == '-404' and os.environ.get('DEBUG', 'False') == 'True':
+    if user_id == '-404':
+        if os.environ.get('DEBUG', 'False') == 'True':
+            return redirect('index')
         getall = models.Users.objects.filter(Checked_In=False)
     else:
         getall = models.Users.objects.filter(Checked_In=True)
