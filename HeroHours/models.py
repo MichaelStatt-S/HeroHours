@@ -51,4 +51,4 @@ class ActivityLog(models.Model):
         return f"{self.userID} - {self.operation} - {self.status} - {self.timestamp}"
 
     class Meta:
-        ordering = ['-id']  # Order by most recent logs first
+        ordering = ['-timestamp']  # Order by most recent logs first
