@@ -30,9 +30,9 @@ SECRET_KEY = os.environ['SECRET_KEY']
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG','False') == 'True'
 
-ALLOWED_HOSTS = ['localhost','127.0.0.1']
+ALLOWED_HOSTS = ['.herokuapp.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -46,9 +46,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'HeroHours.apps.HeroHoursConfig',
     'debug_toolbar',
+    #'sslserver',
 ]
-LOGIN_REDIRECT_URL = '/'
-LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/HeroHoursRemake/HeroHours/'
+LOGIN_URL = '/HeroHours/login/'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -57,8 +58,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'HeroHours.middleware.TimeItMiddleware',
+    #'HeroHours.middleware.TimeItMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 INTERNAL_IPS = ['127.0.0.1']
 ROOT_URLCONF = 'HeroHoursRemake.urls'
@@ -93,7 +95,7 @@ DATABASES = {
     'default': dj_database_url.config(default=os.environ['DATABASE_URL'], conn_max_age=600, ssl_require=True)
 }
 default_database = os.environ.get('DJANGO_DATABASE', 'default')
-DATABASES['default'] = DATABASES[default_database]
+#DATABASES['default'] = DATABASES[default_database]
 
 
 
@@ -133,9 +135,15 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+CSRF_TRUSTED_ORIGINS = ['https://hero-hours-2bf608a75758.herokuapp.com']
+SECURE_SSL_REDIRECT = True
+APPEND_SLASH = True
